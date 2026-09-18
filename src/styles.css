@@ -1,0 +1,526 @@
+:root {
+  --bg: #0b0f14;
+  --panel: #141a22;
+  --panel-2: #1a212c;
+  --border: #2a3440;
+  --text: #d5dde6;
+  --muted: #7f8b99;
+  --accent: #4a9eff;
+  --cyan: #45d3e0;
+  --warn: #e0b34d;
+  --danger: #e06a5e;
+  --success: #5ac48a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* ---------- 通用 ---------- */
+.screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 28px;
+  min-width: 560px;
+  max-width: 760px;
+  width: 100%;
+}
+
+h1 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 600;
+}
+.subtitle {
+  margin: 0 0 20px;
+  color: var(--muted);
+}
+
+.field {
+  display: block;
+  margin-bottom: 18px;
+}
+.field > span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.field input {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 14px;
+}
+.field input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.options button {
+  padding: 8px 14px;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+}
+.options button:hover {
+  border-color: var(--accent);
+}
+.options button.selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #06121f;
+  font-weight: 600;
+}
+
+.primary-btn {
+  padding: 10px 22px;
+  background: var(--accent);
+  color: #06121f;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.primary-btn:hover {
+  background: #6cb4ff;
+}
+.ghost-btn {
+  padding: 10px 22px;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 15px;
+}
+.ghost-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.error-text {
+  color: var(--danger);
+  margin: 0 0 12px;
+}
+.hint {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ---------- 实验页布局 ---------- */
+.experiment-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
+}
+.tb-item {
+  color: var(--muted);
+  font-size: 13px;
+}
+.tb-time {
+  color: var(--cyan);
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  margin-left: auto;
+}
+.tb-stat {
+  color: var(--text);
+}
+.end-btn {
+  margin-left: 12px;
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  border-radius: 6px;
+  font-size: 13px;
+}
+.end-btn:hover {
+  background: var(--danger);
+  color: #1a0c0c;
+}
+
+.main-area {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: 280px 1fr 320px;
+  gap: 12px;
+  padding: 12px;
+  min-height: 0;
+}
+.col-left,
+.col-center,
+.col-right {
+  min-height: 0;
+  overflow: auto;
+}
+
+.section-title {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ---------- 态势图 ---------- */
+.map-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  height: 100%;
+}
+.situation-map {
+  width: 100%;
+  display: block;
+}
+.map-bg {
+  fill: #0d141c;
+}
+.map-grid {
+  stroke: #1c2530;
+  stroke-width: 0.4;
+}
+.map-route {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+  opacity: 0.7;
+}
+.vehicle-marker circle {
+  fill: var(--cyan);
+}
+.uav-marker circle {
+  fill: var(--muted);
+}
+.uav-marker-active circle {
+  fill: var(--warn);
+  stroke: var(--warn);
+  stroke-width: 0.8;
+}
+.target-point {
+  cursor: pointer;
+}
+.tp-normal {
+  fill: var(--success);
+}
+.tp-alert {
+  fill: var(--danger);
+}
+.tp-hit {
+  fill: transparent;
+}
+.map-label {
+  fill: var(--muted);
+  font-size: 4px;
+}
+.map-hint {
+  fill: #55606d;
+  font-size: 4px;
+}
+
+/* ---------- 目标卡片 ---------- */
+.target-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.target-card {
+  flex: 1 1 150px;
+  max-width: 210px;
+  min-width: 150px;
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+.target-card:hover {
+  border-color: var(--accent);
+}
+.target-alert {
+  border-color: var(--warn);
+}
+.target-confirmed {
+  border-color: var(--success);
+}
+.tc-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.tc-id {
+  font-weight: 700;
+  font-size: 16px;
+}
+.tc-source {
+  color: var(--muted);
+  font-size: 12px;
+}
+.tc-threat {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.tc-threat b {
+  font-size: 18px;
+}
+.target-alert .tc-threat b {
+  color: var(--warn);
+}
+.tc-row {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+.tc-state {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.target-alert .tc-state {
+  color: var(--warn);
+}
+.target-confirmed .tc-state {
+  color: var(--success);
+}
+
+/* ---------- UAV 协同区 ---------- */
+.uav-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  height: 100%;
+}
+.uav-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--border);
+}
+.uav-label {
+  color: var(--text);
+  font-weight: 600;
+}
+.uav-status {
+  color: var(--muted);
+  font-size: 12px;
+}
+.uav-row-active {
+  background: rgba(224, 179, 77, 0.12);
+}
+.uav-row-active .uav-status {
+  color: var(--warn);
+}
+
+.uav-task-box {
+  margin-top: 12px;
+  border: 1px solid var(--warn);
+  border-radius: 8px;
+  padding: 12px;
+  background: var(--panel-2);
+}
+.uav-task-tag {
+  display: inline-block;
+  background: var(--warn);
+  color: #241a05;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.06em;
+}
+.uav-task-title {
+  margin: 8px 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--warn);
+}
+
+.uav-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.uav-option {
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  color: var(--text);
+}
+.uav-option:hover {
+  border-color: var(--accent);
+}
+.opt-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.opt-key {
+  background: var(--accent);
+  color: #06121f;
+  font-weight: 700;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 12px;
+  flex: 0 0 auto;
+}
+.opt-label {
+  font-weight: 600;
+}
+.opt-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* 直接介入：中央覆盖层（不遮挡主任务左侧，偏右） */
+.uav-overlay {
+  position: fixed;
+  top: 46%;
+  left: 60%;
+  transform: translate(-50%, -50%);
+  width: 380px;
+  max-width: 90vw;
+  z-index: 100;
+}
+.overlay-box {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+}
+
+/* ---------- 系统消息 ---------- */
+.system-log {
+  flex: 0 0 auto;
+  height: 132px;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  padding: 8px 16px;
+  overflow: hidden;
+}
+.log-scroll {
+  height: 100%;
+  overflow-y: auto;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.log-line {
+  color: var(--muted);
+  padding: 1px 0;
+}
+.log-time {
+  color: #55606d;
+  margin-right: 6px;
+}
+.log-warn {
+  color: var(--warn);
+}
+.log-success {
+  color: var(--success);
+}
+.log-error {
+  color: var(--danger);
+}
+.log-task {
+  color: var(--cyan);
+}
+
+/* ---------- 结束页 ---------- */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 20px 0;
+}
+.stat-box {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+}
+.stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.stat-label {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+.end-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
