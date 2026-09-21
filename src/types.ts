@@ -1,7 +1,14 @@
 // 实验条件
 export type Workload = 'normal' | 'high';
 export type Intervention = 'direct_visual' | 'guidance_visual' | 'guidance_audiovisual';
-export type Phase = 'start' | 'experiment' | 'end';
+export type Phase = 'start' | 'training' | 'experiment' | 'end';
+
+// 预实验培训板块
+export type TrainingStage = 'main' | 'uav' | 'combined' | 'complete';
+
+// 预实验培训模块（灵活导航：三个模块可自由切换、可跳过）
+export type TrainingModuleKey = 'main' | 'secondary' | 'combined';
+export type ModuleStatus = 'not_started' | 'in_progress' | 'completed' | 'skipped';
 
 // 目标信息来源
 export type Source = 'VEH' | 'UAV-01' | 'UAV-02' | 'UAV-03';

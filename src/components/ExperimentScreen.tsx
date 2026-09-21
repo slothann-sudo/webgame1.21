@@ -2,6 +2,8 @@ import { useEffect, useReducer, useRef } from 'react';
 import type { ExperimentConfig, Source, SystemMessage, Target, UavTask } from '../types';
 import {
   CONFIRM_DURATION_MS,
+  DEBUG_MODE,
+  DECISION_FEEDBACK_MS,
   EXPERIMENT_DURATION_MS,
   MAX_UAV_TASKS,
   MISS_TIMEOUT_MS,
@@ -10,6 +12,7 @@ import {
   TICK_MS,
   UAV_FIRST_DELAY_RANGE,
   UAV_GAP_RANGE,
+  UAV_OPTIONS,
   UAV_TIMEOUT_MS,
   correctOption,
 } from '../config';
@@ -40,6 +43,12 @@ interface ExpState {
   nextTaskAtMs: number;
   msgSeq: number;
   ended: boolean;
+  // 次任务裁决后的去向文案（'保持 B 区' / '转派 C 区' / '转派 D 区'），用于 UAV-02 状态恢复
+  uav02Assignment: string | null;
+  // 裁决后 UAV-02 的侦察区域（'B区'/'C区'/'D区'），用于更新态势图中的规划航线
+  uav02Area: string | null;
+  // 次任务裁决后的短暂反馈，until 到期后清除
+  lastDecision: { key: string; area: string; label: string; until: number } | null;
 }
 
 const SOURCES: Source[] = ['VEH', 'UAV-01', 'UAV-02', 'UAV-03'];
@@ -51,8 +60,8 @@ function makeTarget(id: string, elapsedMs: number): Target {
     distance: randFloat(1.5, 10),
     speed: randFloat(8, 25),
     source: pick(SOURCES),
-    x: randFloat(10, 90),
-    y: randFloat(10, 90),
+    x: randFloat(20, 180),
+    y: randFloat(18, 80),
     vx: randFloat(-0.6, 0.6),
     vy: randFloat(-0.6, 0.6),
     active: true,
@@ -88,6 +97,9 @@ export default function ExperimentScreen({ participantId, config, onEnd }: Props
       nextTaskAtMs: randInRange(UAV_FIRST_DELAY_RANGE),
       msgSeq: 1,
       ended: false,
+      uav02Assignment: null,
+      uav02Area: null,
+      lastDecision: null,
     };
   }
 
@@ -193,10 +205,10 @@ export default function ExperimentScreen({ participantId, config, onEnd }: Props
         continue;
       }
 
-      t.x = clamp(t.x + t.vx, 4, 96);
-      t.y = clamp(t.y + t.vy, 4, 96);
-      if (t.x <= 4 || t.x >= 96) t.vx = -t.vx;
-      if (t.y <= 4 || t.y >= 96) t.vy = -t.vy;
+      t.x = clamp(t.x + t.vx, 8, 192);
+      t.y = clamp(t.y + t.vy, 8, 92);
+      if (t.x <= 8 || t.x >= 192) t.vx = -t.vx;
+      if (t.y <= 8 || t.y >= 92) t.vy = -t.vy;
 
       t.threat = clamp(t.threat + t.threatRate + randFloat(-0.08, 0.08), 0, 100);
       t.distance = clamp(t.distance + randFloat(-0.015, 0.015), 0.5, 12);
@@ -250,6 +262,10 @@ export default function ExperimentScreen({ participantId, config, onEnd }: Props
       now - s.uavTask.shownAt >= UAV_TIMEOUT_MS
     ) {
       timeoutUavTask(s, now);
+    }
+
+    if (s.lastDecision !== null && now >= s.lastDecision.until) {
+      s.lastDecision = null;
     }
 
     forceRender();
@@ -315,6 +331,7 @@ export default function ExperimentScreen({ participantId, config, onEnd }: Props
     const now = s.elapsedMs;
     const rt = now - task.shownAt;
     const correct = optionKey === correctOption;
+    const option = UAV_OPTIONS.find((o) => o.key === optionKey);
     task.responded = true;
     logEvent({
       event_type: 'uav_task_response',
@@ -330,15 +347,25 @@ export default function ExperimentScreen({ participantId, config, onEnd }: Props
       `UAV-02 裁决完成：选择 ${optionKey}（${correct ? '正确' : '错误'}）。`,
       correct ? 'success' : 'warn',
     );
+    s.uav02Assignment = option ? option.label : optionKey;
+    s.uav02Area = option ? option.area : optionKey;
+    s.lastDecision = {
+      key: optionKey,
+      area: option ? option.area : optionKey,
+      label: option ? option.label : optionKey,
+      until: now + DECISION_FEEDBACK_MS,
+    };
     s.uavTask = null;
     s.nextTaskAtMs = now + randInRange(UAV_GAP_RANGE);
     forceRender();
   }
 
   const s = stateRef.current!;
+  const isDirect = config.intervention === 'direct_visual';
+  const directActive = isDirect && (s.uavTask !== null || s.lastDecision !== null);
 
   return (
-    <div className="experiment-screen">
+    <div className={`experiment-screen${directActive ? ' direct-active' : ''}`}>
       <TopStatusBar
         participantId={participantId}
         workload={config.workload}
@@ -350,32 +377,34 @@ export default function ExperimentScreen({ participantId, config, onEnd }: Props
         uavShown={s.uavShown}
         onEnd={finishExperiment}
       />
-      <div className="main-area">
-        <aside className="col-left">
+      <div className="workspace">
+        <main className="primary-workspace">
           <SituationMap
             targets={s.targets}
             elapsedMs={s.elapsedMs}
             uavActive={s.uavTask !== null}
+            uav02Area={s.uav02Area}
             onTargetClick={handleTargetClick}
           />
-        </aside>
-        <section className="col-center">
-          <div className="section-title">主任务 · 威胁监控</div>
-          <div className="target-grid">
-            {s.targets.map((t) => (
-              <TargetCard key={t.id} target={t} onSelect={handleTargetClick} />
-            ))}
-          </div>
-        </section>
-        <aside className="col-right">
+          <section className="primary-target-panel">
+            <div className="section-title">主任务 · 威胁目标持续监控</div>
+            <div className="target-grid">
+              {s.targets.map((t) => (
+                <TargetCard key={t.id} target={t} onSelect={handleTargetClick} />
+              ))}
+            </div>
+          </section>
+        </main>
+        <aside className="secondary-panel">
           <UavTaskPanel
             task={s.uavTask}
-            intervention={config.intervention}
+            uav02Assignment={s.uav02Assignment}
+            lastDecision={s.lastDecision}
             onSelect={handleUavSelect}
           />
         </aside>
       </div>
-      <SystemLog messages={s.messages} />
+      {DEBUG_MODE && <SystemLog messages={s.messages} />}
     </div>
   );
 }

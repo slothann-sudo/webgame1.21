@@ -1,4 +1,5 @@
 import type { Intervention, Workload } from '../types';
+import { DEBUG_MODE } from '../config';
 
 interface Props {
   participantId: string;
@@ -23,14 +24,20 @@ export default function TopStatusBar(props: Props) {
   return (
     <header className="topbar">
       <div className="tb-item">被试 {props.participantId}</div>
-      <div className="tb-item">
-        {props.workload === 'high' ? '高负荷' : '普通负荷'} · {props.intervention}
-      </div>
+      <div className="tb-item">任务进行中</div>
+      <div className="tb-item">系统状态 正常</div>
+      {DEBUG_MODE && (
+        <>
+          <div className="tb-item tb-stat">
+            {props.workload === 'high' ? '高负荷' : '普通负荷'} · {props.intervention}
+          </div>
+          <div className="tb-item tb-stat">命中 {props.hits}</div>
+          <div className="tb-item tb-stat">漏检 {props.misses}</div>
+          <div className="tb-item tb-stat">误报 {props.falseAlarms}</div>
+          <div className="tb-item tb-stat">UAV {props.uavShown}</div>
+        </>
+      )}
       <div className="tb-item tb-time">{fmtTime(props.elapsedMs)}</div>
-      <div className="tb-item tb-stat">命中 {props.hits}</div>
-      <div className="tb-item tb-stat">漏检 {props.misses}</div>
-      <div className="tb-item tb-stat">误报 {props.falseAlarms}</div>
-      <div className="tb-item tb-stat">UAV {props.uavShown}</div>
       <button className="end-btn" onClick={props.onEnd}>结束实验</button>
     </header>
   );
