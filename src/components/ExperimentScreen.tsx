@@ -7,6 +7,7 @@ import {
   EXPERIMENT_DURATION_MS,
   MAX_UAV_TASKS,
   MISS_TIMEOUT_MS,
+  NEUTRAL_FEEDBACK_MS,
   TARGET_COUNT,
   THRESHOLD,
   TICK_MS,
@@ -72,6 +73,7 @@ function makeTarget(id: string, elapsedMs: number): Target {
     threatRate: randFloat(0.2, 0.55),
     confirmed: false,
     confirmedUntil: null,
+    feedbackUntil: null,
     spawnTime: elapsedMs,
   };
 }
@@ -198,6 +200,9 @@ export default function ExperimentScreen({ participantId, config, onEnd }: Props
     const now = s.elapsedMs;
 
     for (const t of s.targets) {
+      if (t.feedbackUntil !== null && now >= t.feedbackUntil) {
+        t.feedbackUntil = null;
+      }
       if (t.confirmed) {
         if (t.confirmedUntil !== null && now >= t.confirmedUntil) {
           resetTargetInPlace(s, t, now);
@@ -274,7 +279,7 @@ export default function ExperimentScreen({ participantId, config, onEnd }: Props
   function handleTargetClick(targetId: string) {
     const s = stateRef.current!;
     const t = s.targets.find((x) => x.id === targetId);
-    if (!t || !t.active || t.confirmed || t.missed) return;
+    if (!t || !t.active || t.confirmed || t.missed || t.feedbackUntil !== null) return;
     const now = s.elapsedMs;
 
     if (t.threat >= THRESHOLD && !t.clicked) {
@@ -298,6 +303,8 @@ export default function ExperimentScreen({ participantId, config, onEnd }: Props
       t.clicked = true;
       t.confirmed = true;
       t.confirmedUntil = now + CONFIRM_DURATION_MS;
+      // 界面上统一显示中性反馈，不向被试显示“正确”
+      t.feedbackUntil = now + CONFIRM_DURATION_MS;
       s.hits += 1;
       addMessage(`${t.id} 已确认命中（${rt}ms）。`, 'success');
     } else {
@@ -318,6 +325,8 @@ export default function ExperimentScreen({ participantId, config, onEnd }: Props
         rt_ms: 0,
         screen_state: 'main_task',
       });
+      // 误报同样只显示中性反馈，不向被试显示“误报”
+      t.feedbackUntil = now + NEUTRAL_FEEDBACK_MS;
       s.falseAlarms += 1;
       addMessage(`${t.id} 未达阈值被点击，记录误报。`, 'error');
     }
@@ -365,7 +374,7 @@ export default function ExperimentScreen({ participantId, config, onEnd }: Props
   const directActive = isDirect && (s.uavTask !== null || s.lastDecision !== null);
 
   return (
-    <div className={`experiment-screen${directActive ? ' direct-active' : ''}`}>
+    <div className="experiment-screen">
       <TopStatusBar
         participantId={participantId}
         workload={config.workload}
@@ -377,7 +386,7 @@ export default function ExperimentScreen({ participantId, config, onEnd }: Props
         uavShown={s.uavShown}
         onEnd={finishExperiment}
       />
-      <div className="workspace">
+      <div className={`workspace ${directActive ? 'direct-active' : 'default-state'}`}>
         <main className="primary-workspace">
           <SituationMap
             targets={s.targets}
@@ -387,7 +396,9 @@ export default function ExperimentScreen({ participantId, config, onEnd }: Props
             onTargetClick={handleTargetClick}
           />
           <section className="primary-target-panel">
-            <div className="section-title">主任务 · 威胁目标持续监控</div>
+            <div className="section-title">主任务｜威胁目标持续监控</div>
+            <p className="primary-task-desc">持续观察各目标 Threat 值。请根据阈值规则选择需要处置的目标。</p>
+            <span className="primary-task-rule">阈值：{THRESHOLD}</span>
             <div className="target-grid">
               {s.targets.map((t) => (
                 <TargetCard key={t.id} target={t} onSelect={handleTargetClick} />

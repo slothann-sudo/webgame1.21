@@ -199,14 +199,19 @@ h1 {
 .workspace {
   flex: 1 1 auto;
   display: grid;
-  grid-template-columns: minmax(0, 4fr) minmax(300px, 1fr);
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) var(--secondary-width, clamp(300px, 22vw, 380px));
+  gap: 14px;
   padding: 12px;
   min-height: 0;
-  transition: grid-template-columns 0.4s ease;
+  transition: grid-template-columns 400ms ease;
 }
+/* 默认状态：右侧窄 UAV 状态栏（约 22vw） */
+.workspace.default-state {
+  --secondary-width: clamp(300px, 22vw, 380px);
+}
+/* direct_visual 次任务出现：右侧扩展为裁决工作区，左侧主任务区被压缩（约 38vw） */
 .workspace.direct-active {
-  grid-template-columns: minmax(0, 2.2fr) minmax(420px, 1.3fr);
+  --secondary-width: clamp(520px, 38vw, 700px);
 }
 .primary-workspace {
   min-height: 0;
@@ -226,6 +231,20 @@ h1 {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 12px 16px;
+}
+.primary-task-desc {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.primary-task-rule {
+  display: inline-block;
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 8px;
 }
 
 .section-title {
@@ -289,6 +308,10 @@ h1 {
 .tp-alert {
   fill: var(--danger);
 }
+/* 正式实验态势图目标点：统一中性色，不随阈值变化泄露答案 */
+.tp-neutral {
+  fill: var(--text);
+}
 .tp-hit {
   fill: transparent;
 }
@@ -301,10 +324,10 @@ h1 {
   font-size: 4px;
 }
 
-/* ---------- 目标卡片 ---------- */
+/* ---------- 目标卡片（正式实验：统一中性样式，不随阈值泄露答案） ---------- */
 .target-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
 }
 .target-card {
@@ -320,12 +343,6 @@ h1 {
 .target-card:hover {
   border-color: var(--accent);
 }
-.target-alert {
-  border-color: var(--warn);
-}
-.target-confirmed {
-  border-color: var(--success);
-}
 .tc-head {
   display: flex;
   justify-content: space-between;
@@ -339,15 +356,67 @@ h1 {
   color: var(--muted);
   font-size: 12px;
 }
-.tc-threat {
-  font-size: 13px;
+.tc-threat-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   margin-bottom: 4px;
 }
-.tc-threat b {
-  font-size: 18px;
+.tc-threat {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
 }
-.target-alert .tc-threat b {
-  color: var(--warn);
+.tc-threat-label {
+  color: var(--muted);
+  font-size: 12px;
+}
+.tc-threat b {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.tc-threshold {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.tc-trend {
+  margin-left: 6px;
+  font-size: 15px;
+  color: var(--muted);
+}
+/* 威胁进度条：填充色恒定，阈值位置用细标记标出，不随越阈值变色 */
+.tc-bar {
+  position: relative;
+  height: 6px;
+  background: var(--panel-2);
+  border-radius: 3px;
+  margin: 6px 0 8px;
+}
+.tc-bar-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 3px;
+  background: var(--accent);
+  transition: width 0.4s linear;
+}
+.tc-bar-mark {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--muted);
+  border-radius: 1px;
+}
+.tc-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 .tc-row {
   color: var(--muted);
@@ -359,36 +428,27 @@ h1 {
   font-size: 12px;
   color: var(--muted);
 }
-.target-alert .tc-state {
-  color: var(--warn);
+.tc-state-feedback {
+  color: var(--accent);
 }
-.target-confirmed .tc-state {
-  color: var(--success);
-}
-.tc-trend {
-  margin-left: 8px;
-  font-size: 15px;
-  color: var(--warn);
-}
-.tc-confirm-btn {
-  display: block;
+/* 所有卡片统一的选择按钮，不区分目标 */
+.tc-select-btn {
+  width: 100%;
   margin-top: 10px;
-  padding: 7px 0;
-  text-align: center;
+  padding: 8px 0;
   background: var(--panel-2);
+  color: var(--text);
   border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--text);
 }
-.target-alert .tc-confirm-btn {
-  border-color: var(--warn);
-  color: var(--warn);
+.tc-select-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
 }
-.target-confirmed .tc-confirm-btn {
-  border-color: var(--success);
-  color: var(--success);
+.tc-select-btn:disabled {
+  opacity: 0.7;
 }
 
 /* ---------- UAV 协同区 ---------- */

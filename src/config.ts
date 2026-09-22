@@ -2,8 +2,6 @@ import type { UavOption, Workload } from './types';
 
 // 主任务威胁阈值
 export const THRESHOLD = 80;
-// “接近阈值”提示区间下限（75 ≤ Threat < 80 显示“接近阈值”）
-export const NEAR_THRESHOLD = 75;
 // 超过阈值后多少毫秒内点击算命中，否则漏检
 export const MISS_TIMEOUT_MS = 3000;
 // 次任务超时时间
@@ -14,8 +12,10 @@ export const EXPERIMENT_DURATION_MS = 120000;
 export const MAX_UAV_TASKS = 4;
 // 主循环 tick 间隔
 export const TICK_MS = 100;
-// 命中后“已确认”状态显示时长
+// 命中后“已确认”状态显示时长（命中后据此重置目标）
 export const CONFIRM_DURATION_MS = 800;
+// 点击目标后的中性反馈显示时长（对命中与误报统一显示“已记录选择”）
+export const NEUTRAL_FEEDBACK_MS = 700;
 // 次任务裁决完成后的反馈显示时长（之后右侧区域缩回）
 export const DECISION_FEEDBACK_MS = 1000;
 

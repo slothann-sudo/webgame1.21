@@ -1,5 +1,4 @@
 import type { Target } from '../types';
-import { THRESHOLD } from '../config';
 
 interface Props {
   targets: Target[];
@@ -162,15 +161,10 @@ export default function SituationMap({
           <text x={vx} y={vy - 4.5} className="map-label" textAnchor="middle">VEH</text>
         </g>
 
-        {/* 威胁目标标记（态势辅助展示，详细判断以底部卡片为准） */}
+        {/* 威胁目标标记（态势辅助展示，详细判断以底部卡片为准；统一中性色，不随阈值变化泄露答案） */}
         {targets.map((t) => (
           <g key={t.id} className="target-point" onClick={() => onTargetClick(t.id)}>
-            <circle
-              cx={t.x}
-              cy={t.y}
-              r="3"
-              className={t.threat >= THRESHOLD ? 'tp-alert' : 'tp-normal'}
-            />
+            <circle cx={t.x} cy={t.y} r="3" className="tp-neutral" />
             <circle cx={t.x} cy={t.y} r="7" className="tp-hit" />
             <text x={t.x} y={t.y - 5} className="map-label" textAnchor="middle">{t.id}</text>
           </g>

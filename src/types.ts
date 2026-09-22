@@ -37,6 +37,8 @@ export interface Target {
   threatRate: number; // 每 tick 威胁增长率
   confirmed: boolean; // 命中后短暂“已确认”
   confirmedUntil: number | null;
+  // 点击目标后的中性反馈窗口（命中与误报统一显示“已记录选择”，不区分结果）
+  feedbackUntil: number | null;
   spawnTime: number;
 }
 
